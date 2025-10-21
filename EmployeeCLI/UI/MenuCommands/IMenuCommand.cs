@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace EmployeeCLI.UI.MenuCommands
+{
+    public interface IMenuCommand
+    {
+        int Id { get; }
+        string Title { get; }
+        Task Execute();
+    }
+}
