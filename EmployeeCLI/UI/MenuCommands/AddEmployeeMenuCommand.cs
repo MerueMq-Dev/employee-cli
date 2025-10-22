@@ -23,13 +23,28 @@ namespace EmployeeCLI.UI.MenuCommands
 
             var employee = new CreateEmployee
             {
-                FirstName = InputReader.Read("Имя: ", new NonEmptyStringValidator(), s => s),
-                LastName = InputReader.Read("Фамилия: ", new NonEmptyStringValidator(), s => s),
-                Email = InputReader.Read("Email: ", new EmailValidator(), s => s),
+                FirstName = InputReader.Read("Имя: ",
+                [
+                    new NonEmptyStringValidator(),
+                    new LettersOnlyValidator(),
+                    new StringLengthValidator(1, 50)
+                ],
+                s => s
+                ),
+                LastName = InputReader.Read("Фамилия: ", 
+                [   new NonEmptyStringValidator(), 
+                    new LettersOnlyValidator(),
+                    new StringLengthValidator(1, 50)
+                ], s => s),
+                Email = InputReader.Read("Email: ",
+                [
+                    new EmailValidator(),
+                    new StringLengthValidator(1, 50)
+                ], s => s),
                 DateOfBirth = InputReader.Read("Дата рождения (ДД.ММ.ГГГГ): ", new DateValidator(), s => DateTime.Parse(s)),
                 Salary = InputReader.Read("Зарплата: ", new PositiveDecimalValidator(), s => decimal.Parse(s))
             };
-            
+
             var result = await Service.AddEmployee(employee);
 
             if (result.IsSuccess)

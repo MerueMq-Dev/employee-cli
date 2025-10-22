@@ -24,44 +24,47 @@ namespace EmployeeCLI.UI.MenuCommands
                 return;
             }
 
-            var employee = result.Data;
+            var existingEmployee = result.Data;
             Console.WriteLine("\nТекущие данные:");
-            Console.WriteLine(employee);
+            Console.WriteLine(existingEmployee);
             
             var updateEmployee = new UpdateEmployee { EmployeeID = id };
 
             Console.WriteLine("\nВведите новые значения (Enter = пропустить):\n");
-            
-            Console.Write($"Имя [{employee.FirstName}]: ");
-            var firstName = Console.ReadLine()?.Trim();
-            if (!string.IsNullOrEmpty(firstName))
-                updateEmployee.FirstName = firstName;
+       
 
-            Console.Write($"Фамилия [{employee.LastName}]: ");
-            var lastName = Console.ReadLine()?.Trim();
-            if (!string.IsNullOrEmpty(lastName))
-                updateEmployee.LastName = lastName;
+            Console.WriteLine("\n💡 Введите новые значения или нажмите Enter для пропуска:\n");
 
+            updateEmployee.FirstName = InputReader.ReadOptionalString(
+                $"Имя [{existingEmployee.FirstName}]: ",
+                    [new NonEmptyStringValidator(), new LettersOnlyValidator(), 
+                    new StringLengthValidator(1, 50)]
+            );
 
-            Console.Write($"Email [{employee.Email}]: ");
-            var email = Console.ReadLine()?.Trim();
-            if (!string.IsNullOrEmpty(email))
-                updateEmployee.Email = email;
+            updateEmployee.LastName = InputReader.ReadOptionalString(
+                $"Фамилия [{existingEmployee.LastName}]: ",
+                [new NonEmptyStringValidator(), new LettersOnlyValidator(), new StringLengthValidator(1, 50)]
 
-            Console.Write($"Дата рождения [{employee.DateOfBirth:dd.MM.yyyy}] (ДД.ММ.ГГГГ): ");
-            var dobStr = Console.ReadLine()?.Trim();
-            if (!string.IsNullOrEmpty(dobStr) &&
-                DateTime.TryParseExact(dobStr, "dd.MM.yyyy", null,
-                    System.Globalization.DateTimeStyles.None, out var dob))
-            {
-                updateEmployee.DateOfBirth = dob;
-            }
-            
-            Console.Write($"Зарплата [{employee.Salary:N2}]: ");
-            var salaryStr = Console.ReadLine()?.Trim();
-            if (!string.IsNullOrEmpty(salaryStr) && decimal.TryParse(salaryStr, out var salary))
-                updateEmployee.Salary = salary;
-            
+            );
+
+            updateEmployee.Email = InputReader.ReadOptionalString(
+                $"Email [{existingEmployee.Email}]: ",
+                [new EmailValidator(), new StringLengthValidator(1, 100)]
+            );
+
+            updateEmployee.DateOfBirth = InputReader.ReadOptional(
+                $"Дата рождения [{existingEmployee.DateOfBirth:dd.MM.yyyy}] (ДД.ММ.ГГГГ): ",
+                new DateValidator(),
+                s => DateTime.ParseExact(s, "dd.MM.yyyy",
+                    System.Globalization.CultureInfo.InvariantCulture)
+            );
+
+            updateEmployee.Salary = InputReader.ReadOptional(
+                $"Зарплата [{existingEmployee.Salary:N2}]: ",
+                new PositiveDecimalValidator(), 
+                s => decimal.Parse(s)
+            );
+                    
             if (updateEmployee.FirstName == null &&
                 updateEmployee.LastName == null &&
                 updateEmployee.Email == null &&
@@ -71,8 +74,7 @@ namespace EmployeeCLI.UI.MenuCommands
                 Console.WriteLine("\nНичего не изменено.");
                 return;
             }
-
-            // Отправляем на обновление
+           
             var updateResult =  await Service.UpdateEmployee(updateEmployee);
 
             if (updateResult.IsSuccess)
@@ -80,6 +82,5 @@ namespace EmployeeCLI.UI.MenuCommands
             else
                 PrintError(updateResult.Message);
         }
-    }
-    
+    }    
 }

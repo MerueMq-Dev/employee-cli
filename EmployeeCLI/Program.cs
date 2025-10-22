@@ -13,13 +13,12 @@ public class Program
     {       
         string employeeConnectionString= @"Server=127.0.0.1,1433;Database=EmployeeDB;User Id=sa;Password=MyStrong!Password123;TrustServerCertificate=True;Encrypt=False;";
         string masterConnectionString = "Server=127.0.0.1,1433;Database=master;User Id=sa;Password=MyStrong!Password123;TrustServerCertificate=True";
-
         try
         {
-            DatabaseInitializer.EnsureDatabaseAndTableExist(masterConnectionString, employeeConnectionString);
+            var bootstrapper = new DatabaseBootstrapper(masterConnectionString, employeeConnectionString);
+            bool dbReady = bootstrapper.TryInitialize();
 
-            IDbConnectionFactory connectionFactory = new SqlConnectionFactory(employeeConnectionString);
-          
+            IDbConnectionFactory connectionFactory = new SqlConnectionFactory(employeeConnectionString);          
             IEmployeeRepository repository = new EmployeeRepository(connectionFactory);
                       
             var service = new EmployeeService(repository);
@@ -32,8 +31,6 @@ public class Program
         catch (Exception ex)
         {
             Console.WriteLine($"Критическая ошибка: {ex.Message}");
-            //Console.WriteLine("\nПодробности:");
-            //Console.WriteLine(ex.StackTrace);
             Console.WriteLine("\nНажмите любую клавишу для выхода...");
             Console.ReadKey();
         }
